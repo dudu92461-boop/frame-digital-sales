@@ -258,17 +258,6 @@ export function Login() {
                   Esqueci minha senha
                 </button>
               </form>
-
-              <div className="mt-8 pt-4 border-t border-slate-200">
-                <p className="text-2xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
-                  Acessos de demonstracao
-                </p>
-                <div className="space-y-1 text-2xs text-slate-600 font-mono">
-                  <p>admin@framedigital.com.br</p>
-                  <p>joao@framedigital.com.br</p>
-                  <p className="text-slate-400">senha: frame@2025</p>
-                </div>
-              </div>
             </>
           )}
         </div>
