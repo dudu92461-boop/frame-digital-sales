@@ -26,15 +26,23 @@ datasource db {
 // ---------------------------------------------------------------------------
 
 model User {
-  id           String    @id @default(cuid())
+  id           String  @id @default(cuid())
   name         String
-  email        String    @unique
+  email        String  @unique
   passwordHash String
-  role         String    @default("SELLER") // ADMIN | SELLER
-  active       Boolean   @default(true)
+  role         String  @default("SELLER") // ADMIN | SELLER
+  active       Boolean @default(true)
   phone        String?
-  avatarColor  String    @default("#2563eb")
-  lastLoginAt  DateTime?
+
+  // Foto do vendedor. Guardada como data URL (imagem redimensionada para 256px
+  // no navegador antes do envio, ~20 KB). Escolha deliberada: evita diretorio de
+  // uploads, servico de arquivos estaticos e volume persistente no deploy -- a
+  // foto acompanha o backup do banco. Para volumes maiores de imagem, migrar
+  // para armazenamento de objetos e guardar apenas a URL aqui.
+  avatarUrl   String?
+  avatarColor String  @default("#2563eb") // usado nas iniciais, quando nao ha foto
+
+  lastLoginAt DateTime?
 
   resetToken    String?   @unique
   resetTokenExp DateTime?
@@ -55,8 +63,8 @@ model Seller {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  code String  @unique // FD-001
-  city String?
+  code    String   @unique // FD-001
+  city    String?
   hiredAt DateTime @default(now())
 
   // Quando preenchido, sobrepoe a tabela progressiva de comissao (0.15 = 15%).
@@ -249,7 +257,7 @@ model Payment {
   seller   Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
 
   amount Float
-  method String  @default("PIX")
+  method String   @default("PIX")
   notes  String?
   paidAt DateTime @default(now())
 

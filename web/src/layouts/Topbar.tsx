@@ -169,7 +169,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
           className="flex items-center gap-1.5 h-9 pl-1 pr-1.5 rounded hover:bg-slate-100"
           aria-label="Menu da conta"
         >
-          <Avatar name={user.name} color={user.avatarColor} size="sm" />
+          <Avatar name={user.name} color={user.avatarColor} photoUrl={user.avatarUrl} size="sm" />
           <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
         </button>
 

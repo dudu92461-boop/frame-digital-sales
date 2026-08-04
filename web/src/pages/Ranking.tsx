@@ -48,7 +48,7 @@ function Podium({ rows, meId }: { rows: RankingRow[]; meId?: string }) {
             <span className="text-lg font-bold text-slate-400 tabular-nums w-7">
               {MEDALS[index]}
             </span>
-            <Avatar name={row.name} color={row.avatarColor} size="lg" />
+            <Avatar name={row.name} color={row.avatarColor} photoUrl={row.avatarUrl} size="lg" />
             <div className="min-w-0">
               <p className="text-sm font-semibold text-slate-900 truncate">{row.name}</p>
               <p className="font-mono text-2xs text-slate-500">{row.code}</p>
@@ -142,7 +142,7 @@ export function Ranking() {
                 <span className="text-sm font-semibold text-accent-700 tabular-nums w-8">
                   #{data.me.position}
                 </span>
-                <Avatar name={data.me.name} color={data.me.avatarColor} />
+                <Avatar name={data.me.name} color={data.me.avatarColor} photoUrl={data.me.avatarUrl} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-slate-900">Sua posicao</p>
                   <p className="text-2xs text-slate-600">
@@ -183,7 +183,7 @@ export function Ranking() {
 
                       <td>
                         <div className="flex items-center gap-2">
-                          <Avatar name={row.name} color={row.avatarColor} size="sm" />
+                          <Avatar name={row.name} color={row.avatarColor} photoUrl={row.avatarUrl} size="sm" />
                           <div className="min-w-0">
                             <span className="block font-medium text-slate-900 truncate">
                               {row.name}

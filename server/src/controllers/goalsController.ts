@@ -21,7 +21,7 @@ export async function listGoals(req: Request, res: Response) {
 
   const sellers = await prisma.seller.findMany({
     where: { ...(scope ? { id: scope } : {}), user: { active: true } },
-    include: { user: { select: { name: true, avatarColor: true } } },
+    include: { user: { select: { name: true, avatarUrl: true, avatarColor: true } } },
     orderBy: { code: 'asc' },
   });
 
@@ -45,6 +45,7 @@ export async function listGoals(req: Request, res: Response) {
       sellerId: seller.id,
       code: seller.code,
       name: seller.user.name,
+      avatarUrl: seller.user.avatarUrl,
       avatarColor: seller.user.avatarColor,
       goalId: goal?.id ?? null,
       salesTarget: goal?.salesTarget ?? null,

@@ -28,6 +28,7 @@ export interface CurrentUser {
   role: Role;
   active: boolean;
   phone: string | null;
+  avatarUrl: string | null;
   avatarColor: string;
   lastLoginAt: string | null;
   seller: { id: string; code: string; city: string | null; commissionOverride: number | null } | null;
@@ -165,6 +166,7 @@ export interface RankingRow {
   sellerId: string;
   code: string;
   name: string;
+  avatarUrl: string | null;
   avatarColor: string;
   revenue: number;
   salesCount: number;
@@ -178,6 +180,7 @@ export interface GoalRow {
   sellerId: string;
   code: string;
   name: string;
+  avatarUrl: string | null;
   avatarColor: string;
   goalId: string | null;
   salesTarget: number | null;
@@ -208,6 +211,7 @@ export interface SellerAdmin {
     phone: string | null;
     role: Role;
     active: boolean;
+    avatarUrl: string | null;
     avatarColor: string;
     lastLoginAt: string | null;
   };

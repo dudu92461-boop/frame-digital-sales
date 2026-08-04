@@ -278,7 +278,7 @@ export async function rankingRows(period: { month: number; year: number }) {
   });
 
   const sellers = await prisma.seller.findMany({
-    include: { user: { select: { name: true, active: true, avatarColor: true } } },
+    include: { user: { select: { name: true, active: true, avatarUrl: true, avatarColor: true } } },
   });
 
   const commissions = await prisma.commission.groupBy({
@@ -302,6 +302,7 @@ export async function rankingRows(period: { month: number; year: number }) {
         sellerId: seller.id,
         code: seller.code,
         name: seller.user.name,
+        avatarUrl: seller.user.avatarUrl,
         avatarColor: seller.user.avatarColor,
         revenue,
         salesCount,

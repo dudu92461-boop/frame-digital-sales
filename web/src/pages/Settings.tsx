@@ -4,10 +4,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 import { api, ApiError } from '@/services/api';
 import { PageHeader } from '@/components/PageHeader';
-import { Alert, Avatar, Field, Spinner } from '@/components/ui';
+import { Alert, Field, Spinner } from '@/components/ui';
+import { AvatarPicker } from '@/components/AvatarPicker';
 import { dateTime } from '@/utils/format';
-
-const AVATAR_COLORS = ['#2563eb', '#0f766e', '#b45309', '#7c3aed', '#be123c', '#0369a1', '#0f172a'];
 
 function ProfileSection() {
   const { user, refresh } = useAuth();
@@ -15,7 +14,8 @@ function ProfileSection() {
 
   const [name, setName] = useState(user?.name ?? '');
   const [phone, setPhone] = useState(user?.phone ?? '');
-  const [avatarColor, setAvatarColor] = useState(user?.avatarColor ?? AVATAR_COLORS[0]);
+  const [avatarColor, setAvatarColor] = useState(user?.avatarColor ?? '#2563eb');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(user?.avatarUrl ?? null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -24,7 +24,12 @@ function ProfileSection() {
     setSaving(true);
     setError('');
     try {
-      await api.patch('/auth/profile', { name, phone: phone || undefined, avatarColor });
+      await api.patch('/auth/profile', {
+        name,
+        phone: phone || undefined,
+        avatarColor,
+        avatarUrl, // null remove a foto
+      });
       await refresh();
       toast('Perfil atualizado.');
     } catch (err) {
@@ -48,23 +53,13 @@ function ProfileSection() {
       <form onSubmit={submit} className="p-4 space-y-3 max-w-lg">
         {error && <Alert message={error} />}
 
-        <div className="flex items-center gap-3">
-          <Avatar name={name || user.name} color={avatarColor} size="lg" />
-          <div className="flex flex-wrap gap-1.5">
-            {AVATAR_COLORS.map((color) => (
-              <button
-                key={color}
-                type="button"
-                onClick={() => setAvatarColor(color)}
-                className={`w-6 h-6 rounded-full border-2 ${
-                  avatarColor === color ? 'border-slate-900' : 'border-transparent'
-                }`}
-                style={{ backgroundColor: color }}
-                aria-label={`Cor ${color}`}
-              />
-            ))}
-          </div>
-        </div>
+        <AvatarPicker
+          name={name || user.name}
+          photoUrl={avatarUrl}
+          color={avatarColor}
+          onPhotoChange={setAvatarUrl}
+          onColorChange={setAvatarColor}
+        />
 
         <Field label="Nome" required>
           <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />

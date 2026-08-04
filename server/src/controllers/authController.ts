@@ -72,15 +72,22 @@ export async function me(req: Request, res: Response) {
 }
 
 export async function updateProfile(req: Request, res: Response) {
-  const { name, phone, avatarColor } = req.body as {
+  const { name, phone, avatarColor, avatarUrl } = req.body as {
     name: string;
     phone?: string;
     avatarColor?: string;
+    avatarUrl?: string | null;
   };
 
   const user = await prisma.user.update({
     where: { id: req.auth!.userId },
-    data: { name, phone: phone ?? null, ...(avatarColor ? { avatarColor } : {}) },
+    data: {
+      name,
+      phone: phone ?? null,
+      ...(avatarColor ? { avatarColor } : {}),
+      // Só toca na foto quando o campo veio no corpo (null remove).
+      ...(avatarUrl !== undefined ? { avatarUrl } : {}),
+    },
     include: { seller: { select: { id: true, code: true, city: true, commissionOverride: true } } },
   });
 
@@ -163,6 +170,7 @@ type UserWithSeller = {
   role: string;
   active: boolean;
   phone: string | null;
+  avatarUrl: string | null;
   avatarColor: string;
   lastLoginAt: Date | null;
   seller?: { id: string; code: string; city?: string | null; commissionOverride?: number | null } | null;
@@ -177,6 +185,7 @@ function serializeUser(user: UserWithSeller) {
     role: user.role,
     active: user.active,
     phone: user.phone,
+    avatarUrl: user.avatarUrl,
     avatarColor: user.avatarColor,
     lastLoginAt: user.lastLoginAt,
     seller: user.seller

@@ -94,6 +94,24 @@ web/                         Interface em React + TypeScript + Vite
 
 ---
 
+## Foto do vendedor
+
+Cada vendedor pode enviar a propria foto em **Configuracoes**, e o administrador pode
+definir ou trocar a foto de qualquer vendedor em **Administracao > Vendedores**. Sem
+foto, o sistema mostra as iniciais sobre a cor escolhida.
+
+A imagem e recortada em quadrado, reduzida para 256x256 e convertida para JPEG **no
+navegador** antes do envio (fica em torno de 20 KB). O servidor revalida formato e
+tamanho — o preparo no cliente e conveniencia, nao a defesa.
+
+A foto e guardada como data URL na coluna `users.avatarUrl`. E uma escolha
+deliberada: dispensa diretorio de uploads, servidor de arquivos estaticos e volume
+persistente no deploy, e a foto acompanha o backup do banco. Se um dia o volume de
+imagens crescer (fotos de clientes, anexos de proposta), o caminho e migrar para
+armazenamento de objetos e guardar apenas a URL nessa coluna.
+
+---
+
 ## Regras de comissao
 
 A faixa e **progressiva, por vendedor e por mes**. A quantidade de vendas ja pagas no

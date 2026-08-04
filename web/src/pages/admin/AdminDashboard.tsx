@@ -141,7 +141,7 @@ export function AdminDashboardPage() {
                   <span className="w-5 text-xs font-semibold text-slate-500 tabular-nums">
                     {row.position}
                   </span>
-                  <Avatar name={row.name} color={row.avatarColor} size="sm" />
+                  <Avatar name={row.name} color={row.avatarColor} photoUrl={row.avatarUrl} size="sm" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium text-slate-800 truncate">{row.name}</p>
                     <p className="text-2xs text-slate-500">

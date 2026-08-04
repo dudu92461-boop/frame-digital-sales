@@ -65,29 +65,50 @@ export function Badge({ label, className }: { label: string; className: string }
   return <span className={cx('badge', className)}>{label}</span>;
 }
 
+const AVATAR_SIZES = {
+  sm: 'w-6 h-6 text-2xs',
+  md: 'w-8 h-8 text-xs',
+  lg: 'w-11 h-11 text-sm',
+  xl: 'w-20 h-20 text-xl',
+};
+
+/**
+ * Foto do vendedor quando houver; iniciais sobre a cor dele como alternativa.
+ * A mesma marcacao serve aos dois casos para o alinhamento nunca variar entre
+ * uma linha com foto e outra sem.
+ */
 export function Avatar({
   name,
   color = '#2563eb',
+  photoUrl,
   size = 'md',
+  className,
 }: {
   name: string;
   color?: string;
-  size?: 'sm' | 'md' | 'lg';
+  photoUrl?: string | null;
+  size?: keyof typeof AVATAR_SIZES;
+  className?: string;
 }) {
-  const sizes = {
-    sm: 'w-6 h-6 text-2xs',
-    md: 'w-8 h-8 text-xs',
-    lg: 'w-11 h-11 text-sm',
-  };
+  const base = cx(
+    'inline-flex items-center justify-center rounded-full font-semibold text-white shrink-0 overflow-hidden',
+    AVATAR_SIZES[size],
+    className,
+  );
+
+  if (photoUrl) {
+    return (
+      <img
+        src={photoUrl}
+        alt={`Foto de ${name}`}
+        className={cx(base, 'object-cover bg-slate-100')}
+        loading="lazy"
+      />
+    );
+  }
+
   return (
-    <span
-      className={cx(
-        'inline-flex items-center justify-center rounded-full font-semibold text-white shrink-0',
-        sizes[size],
-      )}
-      style={{ backgroundColor: color }}
-      aria-hidden
-    >
+    <span className={base} style={{ backgroundColor: color }} aria-hidden>
       {initials(name)}
     </span>
   );

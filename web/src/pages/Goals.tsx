@@ -132,7 +132,7 @@ function GoalCard({
     <div className="panel p-4">
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-2.5 min-w-0">
-          <Avatar name={row.name} color={row.avatarColor} />
+          <Avatar name={row.name} color={row.avatarColor} photoUrl={row.avatarUrl} />
           <div className="min-w-0">
             <p className="text-sm font-medium text-slate-900 truncate">{row.name}</p>
             <p className="font-mono text-2xs text-slate-500">{row.code}</p>

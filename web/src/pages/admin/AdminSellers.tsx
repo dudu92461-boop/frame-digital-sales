@@ -20,6 +20,7 @@ import {
   Spinner,
   TableWrap,
 } from '@/components/ui';
+import { AvatarPicker } from '@/components/AvatarPicker';
 import { dateTime, money, percent } from '@/utils/format';
 import type { Paginated, SellerAdmin } from '@/types';
 
@@ -50,6 +51,8 @@ function SellerForm({
       seller?.commissionOverride != null ? String(seller.commissionOverride * 100) : '',
   });
 
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(seller?.user.avatarUrl ?? null);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -72,6 +75,7 @@ function SellerForm({
       phone: form.phone || undefined,
       city: form.city || undefined,
       role: form.role,
+      avatarUrl, // null remove a foto
       commissionOverride: override,
       ...(form.code ? { code: form.code } : {}),
       ...(form.password ? { password: form.password } : {}),
@@ -126,8 +130,15 @@ function SellerForm({
         </>
       }
     >
-      <form id="seller-form" onSubmit={submit} className="space-y-3">
+      <form id="seller-form" onSubmit={submit} className="space-y-4">
         {error && <Alert message={error} />}
+
+        <AvatarPicker
+          name={form.name}
+          photoUrl={avatarUrl}
+          color={seller?.user.avatarColor ?? '#2563eb'}
+          onPhotoChange={setAvatarUrl}
+        />
 
         <div className="grid sm:grid-cols-2 gap-3">
           <Field label="Nome" required error={errors.name}>
@@ -346,7 +357,7 @@ export function AdminSellers() {
                       <tr key={seller.id} className={seller.user.active ? '' : 'opacity-60'}>
                         <td>
                           <div className="flex items-center gap-2.5">
-                            <Avatar name={seller.user.name} color={seller.user.avatarColor} size="sm" />
+                            <Avatar name={seller.user.name} color={seller.user.avatarColor} photoUrl={seller.user.avatarUrl} size="sm" />
                             <div className="min-w-0">
                               <span className="block font-medium text-slate-900 truncate">
                                 {seller.user.name}

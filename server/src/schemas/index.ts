@@ -90,6 +90,32 @@ export const changePasswordSchema = z.object({
   newPassword: z.string().min(8, 'A nova senha deve ter no minimo 8 caracteres.'),
 });
 
+/**
+ * Foto de perfil recebida como data URL.
+ *
+ * Nunca confiar no redimensionamento feito no navegador: o cliente pode enviar
+ * qualquer coisa. Aqui checamos o formato, restringimos os tipos de imagem
+ * aceitos e limitamos o tamanho. String vazia ou null significam "remover a
+ * foto" e sao normalizadas para null.
+ */
+const MAX_AVATAR_BYTES = 400 * 1024; // ~400 KB de data URL
+
+export const avatarUrlField = z
+  .string()
+  .nullable()
+  .optional()
+  // Tres estados distintos, e a diferenca importa: `undefined` = campo nao veio
+  // no corpo (mantem a foto atual), `null`/'' = remover a foto, string = nova
+  // foto. Colapsar undefined em null apagaria a foto a cada salvamento de perfil.
+  .transform((v) => (v === undefined ? undefined : v || null))
+  .refine(
+    (v) => v == null || /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(v),
+    { message: 'Envie uma imagem PNG, JPEG ou WebP.' },
+  )
+  .refine((v) => v == null || v.length <= MAX_AVATAR_BYTES, {
+    message: 'A imagem e muito grande. Use uma foto menor.',
+  });
+
 export const updateProfileSchema = z.object({
   name: nonEmpty('Nome'),
   phone: optionalText(40),
@@ -97,6 +123,7 @@ export const updateProfileSchema = z.object({
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/, 'Cor invalida.')
     .optional(),
+  avatarUrl: avatarUrlField,
 });
 
 // ---------------------------------------------------------------------------
@@ -222,6 +249,7 @@ export const createSellerSchema = z.object({
   phone: optionalText(40),
   city: optionalText(80),
   role: z.enum(ROLES).default('SELLER'),
+  avatarUrl: avatarUrlField,
   commissionOverride: z
     .coerce
     .number()
@@ -247,6 +275,7 @@ export const updateSellerSchema = z.object({
   city: optionalText(80),
   active: z.boolean().optional(),
   role: z.enum(ROLES).optional(),
+  avatarUrl: avatarUrlField,
   commissionOverride: z.coerce.number().min(0).max(1).nullable().optional(),
 });
 

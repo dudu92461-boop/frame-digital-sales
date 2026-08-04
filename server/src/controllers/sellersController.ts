@@ -50,6 +50,7 @@ export async function listSellers(req: Request, res: Response) {
             phone: true,
             role: true,
             active: true,
+            avatarUrl: true,
             avatarColor: true,
             lastLoginAt: true,
           },
@@ -102,6 +103,7 @@ export async function getSeller(req: Request, res: Response) {
           phone: true,
           role: true,
           active: true,
+          avatarUrl: true,
           avatarColor: true,
           lastLoginAt: true,
           createdAt: true,
@@ -117,7 +119,8 @@ export async function getSeller(req: Request, res: Response) {
 }
 
 export async function createSeller(req: Request, res: Response) {
-  const { name, email, password, code, phone, city, role, commissionOverride } = req.body;
+  const { name, email, password, code, phone, city, role, avatarUrl, commissionOverride } =
+    req.body;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) throw conflict('Ja existe um usuario com este e-mail.');
@@ -135,6 +138,7 @@ export async function createSeller(req: Request, res: Response) {
       phone: phone ?? null,
       role: role ?? 'SELLER',
       passwordHash: await hashPassword(password),
+      avatarUrl: avatarUrl ?? null,
       avatarColor: PALETTE[count % PALETTE.length],
       seller: {
         create: {
@@ -164,7 +168,8 @@ export async function updateSeller(req: Request, res: Response) {
   });
   if (!seller) throw notFound('Vendedor nao encontrado.');
 
-  const { name, email, password, code, phone, city, active, role, commissionOverride } = req.body;
+  const { name, email, password, code, phone, city, active, role, avatarUrl, commissionOverride } =
+    req.body;
 
   // Impede que o admin remova o proprio acesso por engano.
   if (seller.userId === req.auth!.userId) {
@@ -183,6 +188,7 @@ export async function updateSeller(req: Request, res: Response) {
         ...(phone !== undefined ? { phone: phone ?? null } : {}),
         ...(active !== undefined ? { active } : {}),
         ...(role !== undefined ? { role } : {}),
+        ...(avatarUrl !== undefined ? { avatarUrl } : {}),
         ...(password ? { passwordHash: await hashPassword(password) } : {}),
       },
     });

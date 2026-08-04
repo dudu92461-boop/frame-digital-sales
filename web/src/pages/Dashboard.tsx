@@ -208,7 +208,7 @@ export function Dashboard() {
                   <span className="w-5 text-xs font-semibold text-slate-500 tabular-nums">
                     {row.position}
                   </span>
-                  <Avatar name={row.name} color={row.avatarColor} size="sm" />
+                  <Avatar name={row.name} color={row.avatarColor} photoUrl={row.avatarUrl} size="sm" />
                   <span className="flex-1 min-w-0 text-xs text-slate-700 truncate">{row.name}</span>
                   <span className="text-xs font-medium text-slate-900 tabular-nums">
                     {money(row.revenue)}
