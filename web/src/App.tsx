@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppLayout } from '@/layouts/AppLayout';
 import { useAuth } from '@/hooks/useAuth';
@@ -15,6 +16,12 @@ import { Ranking } from '@/pages/Ranking';
 import { Services } from '@/pages/Services';
 import { Materials } from '@/pages/Materials';
 import { SettingsPage } from '@/pages/Settings';
+
+// O manual de vendas e todo o conteudo carregam sob demanda: ficam fora do
+// pacote inicial e so baixam quando o vendedor abre um guia.
+const GuideView = lazy(() =>
+  import('@/pages/GuideView').then((m) => ({ default: m.GuideView })),
+);
 
 import { AdminDashboardPage } from '@/pages/admin/AdminDashboard';
 import { AdminSellers } from '@/pages/admin/AdminSellers';
@@ -73,6 +80,14 @@ export function App() {
         <Route path="/ranking" element={<Ranking />} />
         <Route path="/servicos" element={<Services />} />
         <Route path="/materiais" element={<Materials />} />
+        <Route
+          path="/materiais/guia/:slug"
+          element={
+            <Suspense fallback={<LoadingBlock />}>
+              <GuideView />
+            </Suspense>
+          }
+        />
         <Route path="/configuracoes" element={<SettingsPage />} />
 
         <Route

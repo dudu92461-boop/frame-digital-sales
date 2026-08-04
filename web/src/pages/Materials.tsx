@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 import { api, ApiError } from '@/services/api';
 import { PageHeader } from '@/components/PageHeader';
+import { TrainingSection } from '@/components/TrainingSection';
 import {
   Alert,
   Badge,
@@ -222,7 +223,7 @@ export function Materials() {
     <>
       <PageHeader
         title="Materiais"
-        description="Tabelas, propostas, scripts e portfolio para apoiar a venda."
+        description="Treinamento de vendas e apoios comerciais para a equipe."
         actions={
           isAdmin ? (
             <button type="button" className="btn-primary btn-sm" onClick={() => setEditing({})}>
@@ -232,6 +233,15 @@ export function Materials() {
           ) : undefined
         }
       />
+
+      <TrainingSection />
+
+      <div className="flex items-center gap-2 mb-3">
+        <h2 className="text-sm font-semibold text-slate-900">Apoios de venda</h2>
+        <span className="text-2xs text-slate-500">
+          propostas, portfolio, scripts e tabelas
+        </span>
+      </div>
 
       <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
         {['all', ...Object.keys(CATEGORY_LABEL)].map((value) => (
@@ -257,8 +267,12 @@ export function Materials() {
       ) : filtered.length === 0 ? (
         <div className="panel">
           <EmptyBlock
-            title="Nenhum material nesta categoria"
-            description={isAdmin ? 'Adicione materiais para a equipe comercial.' : undefined}
+            title="Nenhum apoio de venda nesta categoria"
+            description={
+              isAdmin
+                ? 'Adicione propostas, portfolio ou scripts para a equipe. O treinamento acima ja esta sempre disponivel.'
+                : 'Por enquanto, use o treinamento de vendas acima. Novos apoios aparecem aqui quando a Frame publicar.'
+            }
           />
         </div>
       ) : (
