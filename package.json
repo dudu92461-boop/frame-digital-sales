@@ -1,0 +1,28 @@
+{
+  "name": "frame-digital-sales",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FRAME DIGITAL SALES - Painel de vendedores da Frame Digital",
+  "scripts": {
+    "setup": "npm run install:all && npm run db:reset",
+    "install:all": "npm --prefix server install && npm --prefix web install",
+    "db:generate": "npm --prefix server run db:generate",
+    "db:push": "npm --prefix server run db:push",
+    "db:seed": "npm --prefix server run db:seed",
+    "db:clean": "npm --prefix server run db:clean",
+    "db:reset": "npm --prefix server run db:reset",
+    "dev": "concurrently -n API,WEB -c blue,green \"npm --prefix server run dev\" \"npm --prefix web run dev\"",
+    "dev:api": "npm --prefix server run dev",
+    "dev:web": "npm --prefix web run dev",
+    "build": "npm --prefix server run build && npm --prefix web run build",
+    "start": "npm --prefix server run start",
+    "typecheck": "npm --prefix server run typecheck && npm --prefix web run typecheck",
+    "test": "npm --prefix server run test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

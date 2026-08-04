@@ -1,0 +1,323 @@
+// FRAME DIGITAL SALES - modelo de dados
+//
+// Provider: sqlite em desenvolvimento. Para migrar para PostgreSQL em producao,
+// troque o bloco `datasource` por:
+//
+//   datasource db {
+//     provider = "postgresql"
+//     url      = env("DATABASE_URL")
+//   }
+//
+// e rode `npx prisma migrate dev`. O schema nao usa nenhum recurso exclusivo de
+// SQLite. Campos de enumeracao sao String validadas na camada de aplicacao
+// (src/domain/enums.ts) porque enums nativos nao existem no SQLite.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Acesso e identidade
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         String    @default("SELLER") // ADMIN | SELLER
+  active       Boolean   @default(true)
+  phone        String?
+  avatarColor  String    @default("#2563eb")
+  lastLoginAt  DateTime?
+
+  resetToken    String?   @unique
+  resetTokenExp DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  seller        Seller?
+  notifications Notification[]
+  auditLogs     AuditLog[]
+
+  @@index([role])
+  @@map("users")
+}
+
+model Seller {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  code String  @unique // FD-001
+  city String?
+  hiredAt DateTime @default(now())
+
+  // Quando preenchido, sobrepoe a tabela progressiva de comissao (0.15 = 15%).
+  commissionOverride Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leads       Lead[]
+  clients     Client[]
+  sales       Sale[]
+  commissions Commission[]
+  goals       Goal[]
+  payments    Payment[]
+
+  @@map("sellers")
+}
+
+// ---------------------------------------------------------------------------
+// CRM
+// ---------------------------------------------------------------------------
+
+model Lead {
+  id          String  @id @default(cuid())
+  company     String
+  contactName String
+  whatsapp    String?
+  instagram   String?
+  email       String?
+  city        String?
+  segment     String?
+  notes       String?
+  status      String  @default("NOVO")
+  value       Float? // valor estimado da negociacao
+
+  sellerId String
+  seller   Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  clientId String? @unique
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  lastContactAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([sellerId, status])
+  @@index([createdAt])
+  @@map("leads")
+}
+
+model Client {
+  id          String  @id @default(cuid())
+  company     String
+  contactName String
+  document    String? // CNPJ/CPF
+  whatsapp    String?
+  email       String?
+  instagram   String?
+  city        String?
+  segment     String?
+  notes       String?
+  active      Boolean @default(true)
+
+  sellerId String
+  seller   Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lead  Lead?
+  sales Sale[]
+
+  @@index([sellerId])
+  @@map("clients")
+}
+
+// ---------------------------------------------------------------------------
+// Catalogo
+// ---------------------------------------------------------------------------
+
+model Service {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+  price       Float
+  recurring   Boolean @default(false) // servicos mensais (ex.: social media)
+  active      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sales Sale[]
+
+  @@map("services")
+}
+
+model Material {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  category    String  @default("GERAL") // GERAL | COMERCIAL | TECNICO | MIDIA
+  url         String
+  fileType    String  @default("LINK") // LINK | PDF | DOC | IMAGE | VIDEO
+  active      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("materials")
+}
+
+// ---------------------------------------------------------------------------
+// Vendas e comissoes
+// ---------------------------------------------------------------------------
+
+model Sale {
+  id String @id @default(cuid())
+
+  // Numero sequencial do pedido, atribuido pela aplicacao dentro de uma
+  // transacao (nextSaleNumber). Nao usa autoincrement porque o SQLite so o
+  // permite em campos @id -- e este precisa continuar sendo um campo comum.
+  number Int @unique
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id])
+
+  sellerId String
+  seller   Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  amount        Float
+  paymentMethod String  @default("PIX") // PIX | BOLETO | CARTAO | TRANSFERENCIA | DINHEIRO
+  status        String  @default("PENDENTE")
+  notes         String?
+
+  // Vendas entram como nao aprovadas; o admin valida antes da comissao ser liberada.
+  approved     Boolean   @default(false)
+  approvedAt   DateTime?
+  approvedById String?
+
+  soldAt DateTime  @default(now())
+  paidAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  commission Commission?
+
+  @@index([sellerId, soldAt])
+  @@index([status])
+  @@map("sales")
+}
+
+model Commission {
+  id String @id @default(cuid())
+
+  saleId String @unique
+  sale   Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  sellerId String
+  seller   Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  rate   Float // 0.15 | 0.20 | 0.25 | 0.30
+  amount Float
+  status String @default("PREVISTA") // PREVISTA | PENDENTE | LIBERADA | PAGA | CANCELADA
+
+  referenceMonth Int // 1-12
+  referenceYear  Int
+
+  releasedAt DateTime?
+  paidAt     DateTime?
+
+  paymentId String?
+  payment   Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sellerId, referenceYear, referenceMonth])
+  @@index([status])
+  @@map("commissions")
+}
+
+model Payment {
+  id String @id @default(cuid())
+
+  sellerId String
+  seller   Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  amount Float
+  method String  @default("PIX")
+  notes  String?
+  paidAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+
+  commissions Commission[]
+
+  @@index([sellerId])
+  @@map("payments")
+}
+
+model Goal {
+  id String @id @default(cuid())
+
+  sellerId String
+  seller   Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  month Int // 1-12
+  year  Int
+
+  salesTarget   Int   @default(10)
+  revenueTarget Float @default(5000)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([sellerId, month, year])
+  @@map("goals")
+}
+
+// ---------------------------------------------------------------------------
+// Suporte
+// ---------------------------------------------------------------------------
+
+model Notification {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title   String
+  message String
+  type    String  @default("INFO") // INFO | SUCCESS | WARNING | GOAL | RANKING | COMMISSION
+  link    String?
+  read    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  actorName String
+  action    String // CREATE | UPDATE | DELETE | APPROVE | RELEASE | PAY | LOGIN
+  entity    String // sale | seller | service | commission | ...
+  entityId  String?
+  detail    String?
+  ip        String?
+
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
