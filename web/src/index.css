@@ -82,7 +82,7 @@
 
   .btn-primary {
     @apply btn bg-brand-600 text-white shadow-sm
-           hover:bg-brand-700 hover:shadow active:bg-brand-800;
+           hover:bg-brand-500 hover:shadow-neon active:bg-brand-700;
   }
 
   .btn-secondary {

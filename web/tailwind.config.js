@@ -4,37 +4,37 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Navegacao: azul-petroleo profundo, com mais vida que um cinza neutro.
+        // Navegacao: preto profundo com leve tom roxo (base do visual neon).
         ink: {
-          950: '#0a0f1d',
-          900: '#0f1729',
-          800: '#182335',
-          700: '#223047',
-          600: '#2f4160',
-          500: '#43597d',
+          950: '#050109',
+          900: '#0b0614',
+          800: '#140a22',
+          700: '#1f1033',
+          600: '#2c1748',
+          500: '#3d2166',
         },
-        // Acento principal da marca.
+        // Acento principal da marca: roxo neon.
         brand: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
+          50: '#faf5ff',
+          100: '#f3e8ff',
+          200: '#e9d5ff',
+          300: '#d8b4fe',
+          400: '#c084fc',
+          500: '#a855f7',
+          600: '#9333ea',
+          700: '#7e22ce',
+          800: '#6b21a8',
         },
         // Alias mantido para nao quebrar classes ja escritas como accent-600.
         accent: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
+          50: '#faf5ff',
+          100: '#f3e8ff',
+          200: '#e9d5ff',
+          300: '#d8b4fe',
+          400: '#c084fc',
+          500: '#a855f7',
+          600: '#9333ea',
+          700: '#7e22ce',
         },
         // Cores semanticas do dominio: dinheiro, pendencia, meta, alerta.
         // Escalas completas (50-700): tons intermediarios sao usados em estados
@@ -101,12 +101,14 @@ export default {
         card: '0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06)',
         raised: '0 2px 4px -1px rgb(15 23 42 / 0.06), 0 4px 12px -2px rgb(15 23 42 / 0.08)',
         pop: '0 10px 32px -8px rgb(15 23 42 / 0.22)',
-        sidebar: 'inset -1px 0 0 0 rgb(255 255 255 / 0.06)',
+        sidebar: 'inset -1px 0 0 0 rgb(168 85 247 / 0.14)',
+        // Brilho neon roxo: usado em botoes e destaques da navegacao.
+        neon: '0 0 0 1px rgb(168 85 247 / 0.35), 0 0 18px -2px rgb(168 85 247 / 0.55)',
       },
       backgroundImage: {
         // Usado apenas no painel de navegacao e na tela de login, para dar
         // profundidade sem poluir as areas de trabalho.
-        'ink-depth': 'linear-gradient(175deg, #0f1729 0%, #0a0f1d 100%)',
+        'ink-depth': 'linear-gradient(175deg, #140a22 0%, #050109 100%)',
       },
       keyframes: {
         'fade-in': {
