@@ -8,12 +8,12 @@
   }
 
   body {
-    @apply bg-slate-100 text-slate-800 font-sans text-sm antialiased;
+    @apply bg-slate-50 text-slate-700 font-sans text-sm antialiased;
   }
 
   /* Foco visivel e consistente em todo o sistema (acessibilidade por teclado). */
   :focus-visible {
-    @apply outline-none ring-2 ring-accent-600 ring-offset-1 ring-offset-white;
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-white;
   }
 
   /* Remove as setinhas dos inputs numericos: os valores sao digitados. */
@@ -25,16 +25,21 @@
   input[type='number'] {
     -moz-appearance: textfield;
   }
+
+  /* Caixas de selecao na cor da marca, sem CSS extra em cada tela. */
+  input[type='checkbox'] {
+    @apply w-3.5 h-3.5 rounded border-slate-300 text-brand-600 cursor-pointer;
+  }
 }
 
 @layer components {
   /* --- Superficies ------------------------------------------------------ */
   .panel {
-    @apply bg-white border border-slate-200 rounded-md shadow-card;
+    @apply bg-white border border-slate-200/80 rounded-lg shadow-card;
   }
 
   .panel-header {
-    @apply flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-200;
+    @apply flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-200/80;
   }
 
   .panel-title {
@@ -43,14 +48,15 @@
 
   /* --- Formularios ------------------------------------------------------ */
   .label {
-    @apply block text-xs font-medium text-slate-600 mb-1;
+    @apply block text-xs font-medium text-slate-600 mb-1.5;
   }
 
   .input {
-    @apply w-full h-9 px-3 bg-white border border-slate-300 rounded text-sm text-slate-900
-           placeholder:text-slate-400 transition-colors
-           focus:border-accent-600 focus:outline-none focus:ring-1 focus:ring-accent-600
-           disabled:bg-slate-100 disabled:text-slate-500;
+    @apply w-full h-9 px-3 bg-white border border-slate-300 rounded-md text-sm text-slate-900
+           placeholder:text-slate-400 transition-all
+           hover:border-slate-400
+           focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20
+           disabled:bg-slate-100 disabled:text-slate-500 disabled:hover:border-slate-300;
   }
 
   .textarea {
@@ -58,39 +64,43 @@
   }
 
   .select {
-    @apply input pr-8 appearance-none bg-no-repeat;
+    @apply input pr-8 appearance-none bg-no-repeat cursor-pointer;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-position: right 0.6rem center;
   }
 
   .field-error {
-    @apply mt-1 text-xs text-red-600;
+    @apply mt-1 text-xs text-alert-600;
   }
 
   /* --- Botoes ----------------------------------------------------------- */
   .btn {
-    @apply inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded text-sm font-medium
-           transition-colors whitespace-nowrap disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-md text-sm font-medium
+           transition-all whitespace-nowrap
+           disabled:opacity-50 disabled:pointer-events-none;
   }
 
   .btn-primary {
-    @apply btn bg-accent-600 text-white hover:bg-accent-700;
+    @apply btn bg-brand-600 text-white shadow-sm
+           hover:bg-brand-700 hover:shadow active:bg-brand-800;
   }
 
   .btn-secondary {
-    @apply btn bg-white text-slate-700 border border-slate-300 hover:bg-slate-50;
+    @apply btn bg-white text-slate-700 border border-slate-300 shadow-sm
+           hover:bg-slate-50 hover:border-slate-400;
   }
 
   .btn-ghost {
-    @apply btn text-slate-600 hover:bg-slate-100;
+    @apply btn text-slate-500 hover:bg-slate-100 hover:text-slate-900;
   }
 
   .btn-danger {
-    @apply btn bg-white text-red-700 border border-red-300 hover:bg-red-50;
+    @apply btn bg-white text-alert-700 border border-alert-200 shadow-sm
+           hover:bg-alert-50 hover:border-alert-300;
   }
 
   .btn-sm {
-    @apply h-7 px-2 text-xs gap-1;
+    @apply h-7 px-2.5 text-xs gap-1;
   }
 
   /* --- Tabelas ---------------------------------------------------------- */
@@ -99,26 +109,51 @@
   }
 
   .table thead th {
-    @apply px-3 py-2 text-left text-2xs font-semibold uppercase tracking-wide text-slate-500
-           bg-slate-50 border-b border-slate-200 whitespace-nowrap;
+    @apply px-3 py-2.5 text-left text-2xs font-semibold uppercase tracking-wide text-slate-500
+           bg-slate-50/80 border-b border-slate-200 whitespace-nowrap;
   }
 
   .table tbody td {
-    @apply px-3 py-2 border-b border-slate-100 text-slate-700 align-middle;
+    @apply px-3 py-2.5 border-b border-slate-100 text-slate-700 align-middle;
+  }
+
+  .table tbody tr {
+    @apply transition-colors;
   }
 
   .table tbody tr:hover {
-    @apply bg-slate-50;
+    @apply bg-brand-50/40;
   }
 
   .table-numeric {
     @apply text-right tabular-nums whitespace-nowrap;
   }
 
+  /* Select compacto usado dentro das celulas para trocar status em um toque. */
+  .cell-select {
+    @apply text-2xs border border-slate-200 rounded-md px-1.5 py-1 bg-white cursor-pointer
+           transition-colors hover:border-brand-400 focus:border-brand-500
+           focus:outline-none focus:ring-2 focus:ring-brand-500/20;
+  }
+
   /* --- Etiquetas de status --------------------------------------------- */
   .badge {
-    @apply inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-2xs font-medium
+    @apply inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-2xs font-medium
            border whitespace-nowrap;
+  }
+
+  /* --- Abas de filtro (funil de leads, categorias de material) ---------- */
+  .chip {
+    @apply shrink-0 rounded-lg border text-left transition-all;
+  }
+
+  .chip-idle {
+    @apply chip bg-white border-slate-200 text-slate-600
+           hover:border-brand-300 hover:bg-brand-50/50 hover:text-brand-700;
+  }
+
+  .chip-active {
+    @apply chip bg-ink-900 border-ink-900 text-white shadow-raised;
   }
 }
 

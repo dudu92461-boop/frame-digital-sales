@@ -45,25 +45,29 @@ export function AdminDashboardPage() {
           label="Faturamento do mes"
           value={money(metrics.revenue)}
           hint={`${metrics.salesCount} venda(s) - ticket medio ${money(metrics.averageTicket)}`}
-          icon={<TrendingUp className="w-4 h-4" />}
+          tone="brand"
+          icon={<TrendingUp className="w-3.5 h-3.5" />}
         />
         <Stat
           label="Recebido"
           value={money(metrics.received)}
           hint={`${metrics.paidSalesCount} venda(s) paga(s)`}
-          tone="positive"
+          tone="money"
+          icon={<Wallet className="w-3.5 h-3.5" />}
         />
         <Stat
           label="Comissoes do mes"
           value={money(metrics.commissionCost)}
           hint={`${money(commissions.aReceber)} a repassar`}
-          icon={<Wallet className="w-4 h-4" />}
+          tone="pending"
+          icon={<Wallet className="w-3.5 h-3.5" />}
         />
         <Stat
           label="Lucro estimado"
           value={money(metrics.estimatedProfit)}
           hint="Faturamento menos comissoes"
-          tone={metrics.estimatedProfit >= 0 ? 'positive' : 'warning'}
+          tone={metrics.estimatedProfit >= 0 ? 'money' : 'alert'}
+          icon={<TrendingUp className="w-3.5 h-3.5" />}
         />
       </div>
 
@@ -72,24 +76,28 @@ export function AdminDashboardPage() {
           label="Vendedores"
           value={`${metrics.activeSellers}`}
           hint={`${metrics.sellersCount} cadastrado(s)`}
-          icon={<Users className="w-4 h-4" />}
+          tone="goal"
+          icon={<Users className="w-3.5 h-3.5" />}
         />
         <Stat
           label="Leads"
           value={String(metrics.leadsTotal)}
           hint={`${metrics.leadsMonth} novo(s) no mes`}
-          icon={<ClipboardList className="w-4 h-4" />}
+          tone="neutral"
+          icon={<ClipboardList className="w-3.5 h-3.5" />}
         />
         <Stat
           label="Conversao"
           value={percent(metrics.conversion)}
           hint={`${metrics.wonLeads} lead(s) ganho(s)`}
+          tone="brand"
+          icon={<TrendingUp className="w-3.5 h-3.5" />}
         />
         <Stat
           label="Servicos ativos"
           value={String(metrics.servicesCount)}
-          icon={<Briefcase className="w-4 h-4" />}
-          tone="muted"
+          tone="neutral"
+          icon={<Briefcase className="w-3.5 h-3.5" />}
         />
       </div>
 

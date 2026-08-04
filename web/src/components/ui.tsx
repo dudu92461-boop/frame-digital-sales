@@ -93,7 +93,10 @@ export function Avatar({
   );
 }
 
-/** Barra de progresso simples. Fica ambar abaixo de 50% e verde ao bater 100%. */
+/**
+ * Barra de progresso. A cor conta a situacao da meta de relance: ambar quando
+ * esta atrasada, azul no caminho, verde ao bater os 100%.
+ */
 export function ProgressBar({
   value,
   className,
@@ -106,15 +109,20 @@ export function ProgressBar({
   const pct = Math.max(0, Math.min(1, value ?? 0));
   const width = `${pct * 100}%`;
   const tone =
-    pct >= 1 ? 'bg-emerald-600' : pct >= 0.5 ? 'bg-accent-600' : 'bg-amber-500';
+    pct >= 1 ? 'bg-money-500' : pct >= 0.5 ? 'bg-brand-500' : 'bg-pending-500';
+  const labelTone =
+    pct >= 1 ? 'text-money-700' : pct >= 0.5 ? 'text-brand-700' : 'text-pending-700';
 
   return (
     <div className={cx('flex items-center gap-2', className)}>
-      <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-        <div className={cx('h-full rounded-full transition-all', tone)} style={{ width }} />
+      <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+        <div
+          className={cx('h-full rounded-full transition-all duration-500', tone)}
+          style={{ width }}
+        />
       </div>
       {showLabel && (
-        <span className="text-2xs font-medium text-slate-600 tabular-nums w-10 text-right">
+        <span className={cx('text-2xs font-semibold tabular-nums w-10 text-right', labelTone)}>
           {Math.round(pct * 100)}%
         </span>
       )}
@@ -127,38 +135,61 @@ export function ProgressBar({
 // ---------------------------------------------------------------------------
 
 /**
- * Indicador numerico compacto. Deliberadamente pequeno e denso: o painel precisa
- * caber varias informacoes na primeira dobra, sem cards gigantes.
+ * Cor semantica dos indicadores. A cor carrega significado, nao decoracao:
+ * o vendedor identifica o tipo de numero antes mesmo de ler o rotulo.
+ */
+export type StatTone = 'brand' | 'money' | 'pending' | 'goal' | 'alert' | 'neutral';
+
+const STAT_TONES: Record<StatTone, { bar: string; chip: string; value: string }> = {
+  brand: { bar: 'bg-brand-500', chip: 'bg-brand-50 text-brand-600', value: 'text-slate-900' },
+  money: { bar: 'bg-money-500', chip: 'bg-money-50 text-money-600', value: 'text-money-700' },
+  pending: {
+    bar: 'bg-pending-500',
+    chip: 'bg-pending-50 text-pending-600',
+    value: 'text-pending-700',
+  },
+  goal: { bar: 'bg-goal-500', chip: 'bg-goal-50 text-goal-600', value: 'text-slate-900' },
+  alert: { bar: 'bg-alert-500', chip: 'bg-alert-50 text-alert-600', value: 'text-alert-700' },
+  neutral: { bar: 'bg-slate-300', chip: 'bg-slate-100 text-slate-500', value: 'text-slate-900' },
+};
+
+/**
+ * Indicador numerico compacto: barra colorida no topo, icone em chip da mesma
+ * familia e numero em destaque. Continua denso — o painel precisa caber varias
+ * informacoes na primeira dobra, sem virar cartao gigante.
  */
 export function Stat({
   label,
   value,
   hint,
   icon,
-  tone = 'default',
+  tone = 'brand',
 }: {
   label: string;
   value: string;
   hint?: string;
   icon?: ReactNode;
-  tone?: 'default' | 'positive' | 'warning' | 'muted';
+  tone?: StatTone;
 }) {
-  const tones = {
-    default: 'text-slate-900',
-    positive: 'text-emerald-700',
-    warning: 'text-amber-700',
-    muted: 'text-slate-500',
-  };
+  const style = STAT_TONES[tone];
 
   return (
-    <div className="panel px-3.5 py-3">
+    <div className="panel relative overflow-hidden px-3.5 py-3 transition-shadow hover:shadow-raised">
+      <span className={cx('absolute inset-x-0 top-0 h-0.5', style.bar)} aria-hidden />
+
       <div className="flex items-start justify-between gap-2">
-        <p className="text-2xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
-        {icon && <span className="text-slate-400 shrink-0">{icon}</span>}
+        <p className="text-2xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+        {icon && (
+          <span className={cx('grid place-items-center w-6 h-6 rounded-md shrink-0', style.chip)}>
+            {icon}
+          </span>
+        )}
       </div>
-      <p className={cx('mt-1.5 text-xl font-semibold tabular-nums leading-none', tones[tone])}>
+
+      <p className={cx('mt-2 text-xl font-semibold tabular-nums leading-none', style.value)}>
         {value}
       </p>
+
       {hint && <p className="mt-1.5 text-2xs text-slate-500 leading-tight">{hint}</p>}
     </div>
   );

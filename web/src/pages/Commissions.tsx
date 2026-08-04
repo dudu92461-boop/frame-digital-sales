@@ -129,24 +129,25 @@ export function Commissions() {
           label="Prevista"
           value={money(summary?.prevista.total)}
           hint={`${summary?.prevista.count ?? 0} venda(s) ainda nao paga(s)`}
-          tone="muted"
+          tone="neutral"
         />
         <Stat
           label="Pendente"
           value={money(summary?.pendente.total)}
           hint="Aguardando aprovacao do administrador"
-          tone="warning"
+          tone="pending"
         />
         <Stat
           label="Liberada"
           value={money(summary?.liberada.total)}
           hint="Aprovada, aguardando repasse"
+          tone="brand"
         />
         <Stat
           label="Paga"
           value={money(summary?.paga.total)}
           hint={`${summary?.paga.count ?? 0} comissao(oes) repassada(s)`}
-          tone="positive"
+          tone="money"
         />
       </div>
 

@@ -444,6 +444,7 @@ export function Sales() {
           label="Total no filtro"
           value={money(data?.totals.amount)}
           hint={`${data?.totals.count ?? 0} venda(s)`}
+          tone="brand"
         />
 
         {showTier ? (
@@ -452,11 +453,13 @@ export function Sales() {
               label="Vendas pagas no mes"
               value={String(tier?.paidSalesCount ?? 0)}
               hint="Base para a faixa de comissao"
+              tone="money"
             />
             <Stat
               label="Faixa atual"
               value={tier ? percent(tier.current.rate, 0) : '-'}
               hint={tier?.current.label}
+              tone="goal"
             />
             <Stat
               label="Proxima faixa"
@@ -466,7 +469,7 @@ export function Sales() {
                   ? `Faltam ${tier.next.salesRemaining} venda(s) paga(s)`
                   : 'Faixa maxima atingida'
               }
-              tone="muted"
+              tone="neutral"
             />
           </>
         ) : (
@@ -475,7 +478,7 @@ export function Sales() {
               label="Aguardando aprovacao"
               value={String(pendingApproval)}
               hint="Vendas nesta pagina ainda nao aprovadas"
-              tone={pendingApproval > 0 ? 'warning' : 'default'}
+              tone={pendingApproval > 0 ? 'pending' : 'neutral'}
             />
             <Stat
               label="Ticket medio"
@@ -483,6 +486,7 @@ export function Sales() {
                 data && data.totals.count > 0 ? data.totals.amount / data.totals.count : 0,
               )}
               hint="Valor medio por venda no filtro"
+              tone="money"
             />
             <Stat
               label="Comissao gerada"
@@ -490,7 +494,7 @@ export function Sales() {
                 (data?.items ?? []).reduce((sum, s) => sum + (s.commission?.amount ?? 0), 0),
               )}
               hint="Somatorio das vendas listadas"
-              tone="muted"
+              tone="goal"
             />
           </>
         )}

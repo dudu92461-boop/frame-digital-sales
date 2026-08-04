@@ -58,10 +58,10 @@ export function ClientDetailPage() {
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-        <Stat label="Total vendido" value={money(data.summary.totalValue)} />
-        <Stat label="Ja recebido" value={money(data.summary.paidValue)} tone="positive" />
-        <Stat label="Vendas" value={String(data.summary.salesCount)} />
-        <Stat label="Comissao gerada" value={money(data.summary.commissionTotal)} />
+        <Stat label="Total vendido" value={money(data.summary.totalValue)} tone="brand" />
+        <Stat label="Ja recebido" value={money(data.summary.paidValue)} tone="money" />
+        <Stat label="Vendas" value={String(data.summary.salesCount)} tone="neutral" />
+        <Stat label="Comissao gerada" value={money(data.summary.commissionTotal)} tone="goal" />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4">

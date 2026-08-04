@@ -202,17 +202,18 @@ export function Goals() {
 
       {isAdmin && withGoal.length > 0 && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-          <Stat label="Vendedores com meta" value={String(withGoal.length)} />
+          <Stat label="Vendedores com meta" value={String(withGoal.length)} tone="neutral" />
           <Stat
             label="Bateram a meta"
             value={String(achieved)}
-            tone={achieved > 0 ? 'positive' : 'default'}
+            tone={achieved > 0 ? 'money' : 'pending'}
           />
-          <Stat label="Meta total" value={money(totalTarget)} />
+          <Stat label="Meta total" value={money(totalTarget)} tone="goal" />
           <Stat
             label="Realizado"
             value={money(totalDone)}
             hint={totalTarget > 0 ? percent(totalDone / totalTarget) + ' da meta' : undefined}
+            tone="brand"
           />
         </div>
       )}

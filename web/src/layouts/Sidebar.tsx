@@ -49,8 +49,9 @@ function NavSection({ title, items, onNavigate }: { title?: string; items: NavIt
   return (
     <div className="px-2">
       {title && (
-        <p className="px-2.5 pt-4 pb-1.5 text-2xs font-semibold uppercase tracking-wider text-slate-500">
+        <p className="flex items-center gap-2 px-3 pt-5 pb-2 text-2xs font-semibold uppercase tracking-wider text-slate-500">
           {title}
+          <span className="flex-1 h-px bg-white/[0.07]" aria-hidden />
         </p>
       )}
       <nav className="flex flex-col gap-0.5">
@@ -63,16 +64,22 @@ function NavSection({ title, items, onNavigate }: { title?: string; items: NavIt
             className={({ isActive }) =>
               cx(
                 // Alvo de toque maior no celular do que no desktop.
-                'flex items-center gap-2.5 px-2.5 h-10 lg:h-8 rounded text-sm lg:text-[13px] transition-colors',
+                'group relative flex items-center gap-2.5 pl-3 pr-2.5 h-10 lg:h-9 rounded-lg',
+                'text-sm lg:text-[13px] transition-all duration-150',
                 isActive
-                  ? 'bg-ink-700 text-white font-medium'
-                  : 'text-slate-300 hover:bg-ink-800 hover:text-white',
+                  ? 'bg-brand-600 text-white font-medium shadow-raised'
+                  : 'text-slate-400 hover:bg-white/[0.06] hover:text-white',
               )
             }
           >
             {({ isActive }) => (
               <>
-                <Icon className={cx('w-4 h-4 shrink-0', isActive ? 'text-accent-500' : 'text-slate-400')} />
+                <Icon
+                  className={cx(
+                    'w-4 h-4 shrink-0 transition-colors',
+                    isActive ? 'text-white' : 'text-slate-500 group-hover:text-brand-400',
+                  )}
+                />
                 <span className="truncate">{label}</span>
               </>
             )}
@@ -103,24 +110,24 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
 
       <aside
         className={cx(
-          'fixed inset-y-0 left-0 z-40 w-64 bg-ink-900 flex flex-col',
+          'fixed inset-y-0 left-0 z-40 w-64 bg-ink-depth flex flex-col shadow-sidebar',
           'transition-transform duration-200 lg:translate-x-0 lg:z-auto',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        <div className="flex items-center justify-between h-14 px-4 border-b border-ink-800 shrink-0">
+        <div className="flex items-center justify-between h-14 px-4 border-b border-white/[0.07] shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
             <span
-              className="grid place-items-center w-8 h-8 rounded border-2 border-accent-600 shrink-0"
+              className="grid place-items-center w-8 h-8 rounded-lg bg-brand-600 shadow-raised shrink-0"
               aria-hidden
             >
-              <span className="w-2 h-2 bg-accent-600 rounded-sm" />
+              <span className="w-2.5 h-2.5 bg-white rounded-sm" />
             </span>
             <span className="min-w-0">
               <span className="block text-[13px] font-semibold text-white leading-tight truncate">
                 Frame Digital
               </span>
-              <span className="block text-2xs uppercase tracking-wider text-slate-400 leading-tight">
+              <span className="block text-2xs uppercase tracking-[0.18em] text-brand-400 leading-tight">
                 Sales
               </span>
             </span>
@@ -128,19 +135,19 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
           <button
             type="button"
             onClick={onClose}
-            className="lg:hidden p-1.5 -mr-1.5 text-slate-400 hover:text-white rounded"
+            className="lg:hidden p-1.5 -mr-1.5 text-slate-400 hover:text-white rounded-md hover:bg-white/10"
             aria-label="Fechar menu"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-2">
+        <div className="flex-1 overflow-y-auto py-3">
           <NavSection items={mainNav} onNavigate={onClose} />
           {isAdmin && <NavSection title="Administracao" items={ADMIN_NAV} onNavigate={onClose} />}
         </div>
 
-        <div className="px-4 py-3 border-t border-ink-800 shrink-0">
+        <div className="px-4 py-3 border-t border-white/[0.07] shrink-0">
           <p className="text-2xs text-slate-500">Frame Digital Sales v1.0</p>
         </div>
       </aside>

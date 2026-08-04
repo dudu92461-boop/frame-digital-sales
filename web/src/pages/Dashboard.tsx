@@ -57,37 +57,43 @@ export function Dashboard() {
           hint={`${metrics.salesCount} venda${metrics.salesCount === 1 ? '' : 's'} registrada${
             metrics.salesCount === 1 ? '' : 's'
           }`}
-          icon={<TrendingUp className="w-4 h-4" />}
+          tone="brand"
+          icon={<TrendingUp className="w-3.5 h-3.5" />}
         />
         <Stat
           label="Comissao prevista"
           value={money(commissions.totalPrevisto)}
           hint={`Faixa atual: ${percent(tier.current.rate, 0)}`}
-          icon={<Percent className="w-4 h-4" />}
+          tone="goal"
+          icon={<Percent className="w-3.5 h-3.5" />}
         />
         <Stat
           label="A receber"
           value={money(commissions.aReceber)}
           hint={`${money(commissions.liberada.total)} ja liberado`}
-          tone="warning"
-          icon={<Wallet className="w-4 h-4" />}
+          tone="pending"
+          icon={<Wallet className="w-3.5 h-3.5" />}
         />
         <Stat
           label="Comissao paga"
           value={money(commissions.paga.total)}
           hint={`${commissions.paga.count} comissao(oes) no mes`}
-          tone="positive"
+          tone="money"
+          icon={<Wallet className="w-3.5 h-3.5" />}
         />
         <Stat
           label="Leads"
           value={String(metrics.leadsTotal)}
           hint={`${metrics.leadsMonth} cadastrado(s) no mes`}
-          icon={<ClipboardList className="w-4 h-4" />}
+          tone="neutral"
+          icon={<ClipboardList className="w-3.5 h-3.5" />}
         />
         <Stat
           label="Conversao"
           value={percent(metrics.conversion)}
           hint={`${metrics.wonLeads} lead(s) ganho(s)`}
+          tone="brand"
+          icon={<Trophy className="w-3.5 h-3.5" />}
         />
       </div>
 
