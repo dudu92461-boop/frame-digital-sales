@@ -34,7 +34,7 @@ export function Dashboard() {
   if (error) return <ErrorBlock message={error} onRetry={reload} />;
   if (!data) return null;
 
-  const { metrics, commissions, goal, tier, ranking, recentSales, series, period } = data;
+  const { metrics, commissions, goal, commission, ranking, recentSales, series, period } = data;
 
   return (
     <>
@@ -63,7 +63,7 @@ export function Dashboard() {
         <Stat
           label="Comissao prevista"
           value={money(commissions.totalPrevisto)}
-          hint={`Faixa atual: ${percent(tier.current.rate, 0)}`}
+          hint={`Comissao de ${percent(commission.rate, 0)} por venda`}
           tone="goal"
           icon={<Percent className="w-3.5 h-3.5" />}
         />
@@ -154,33 +154,27 @@ export function Dashboard() {
             )}
           </section>
 
-          {/* Faixa de comissao */}
+          {/* Percentual de comissao */}
           <section className="panel">
             <div className="panel-header">
-              <h2 className="panel-title">Faixa de comissao</h2>
+              <h2 className="panel-title">Sua comissao</h2>
             </div>
             <div className="p-4">
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-semibold text-slate-900 tabular-nums leading-none">
-                  {percent(tier.current.rate, 0)}
+                <span className="text-2xl font-semibold text-goal-700 tabular-nums leading-none">
+                  {percent(commission.rate, 0)}
                 </span>
-                <span className="text-xs text-slate-500">{tier.current.label}</span>
+                <span className="text-xs text-slate-500">sobre o valor de cada venda</span>
               </div>
 
-              {tier.override != null ? (
+              {commission.source === 'INDIVIDUAL' ? (
                 <p className="mt-2 text-2xs text-slate-500 leading-relaxed">
-                  Percentual fixo definido pelo administrador.
-                </p>
-              ) : tier.next ? (
-                <p className="mt-2 text-2xs text-slate-500 leading-relaxed">
-                  Faltam <strong className="text-slate-700">{tier.next.salesRemaining}</strong> venda
-                  {tier.next.salesRemaining === 1 ? '' : 's'} paga
-                  {tier.next.salesRemaining === 1 ? '' : 's'} para subir a{' '}
-                  <strong className="text-slate-700">{percent(tier.next.tier.rate, 0)}</strong>.
+                  Percentual individual definido pelo administrador. O padrao da equipe e{' '}
+                  <strong className="text-slate-700">{percent(commission.defaultRate, 0)}</strong>.
                 </p>
               ) : (
-                <p className="mt-2 text-2xs text-emerald-700 leading-relaxed">
-                  Voce esta na faixa maxima do mes.
+                <p className="mt-2 text-2xs text-slate-500 leading-relaxed">
+                  Percentual unico para toda a equipe, em qualquer quantidade de vendas.
                 </p>
               )}
 

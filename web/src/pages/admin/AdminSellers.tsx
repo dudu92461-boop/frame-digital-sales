@@ -216,7 +216,7 @@ function SellerForm({
           <Field
             label="Comissao fixa (%)"
             error={errors.commissionOverride}
-            hint="Vazio usa a tabela progressiva (15 a 30%)."
+            hint="Vazio usa o percentual padrao da equipe (25%)."
           >
             <input
               type="number"
@@ -226,7 +226,7 @@ function SellerForm({
               className="input"
               value={form.commissionOverride}
               onChange={(e) => set('commissionOverride', e.target.value)}
-              placeholder="Tabela progressiva"
+              placeholder="Padrao (25%)"
             />
           </Field>
         </div>
@@ -402,7 +402,7 @@ export function AdminSellers() {
                         <td className="hidden xl:table-cell text-2xs text-slate-600">
                           {seller.commissionOverride != null
                             ? `Fixa em ${percent(seller.commissionOverride, 1)}`
-                            : 'Tabela progressiva'}
+                            : 'Padrao da equipe (25%)'}
                         </td>
 
                         <td>

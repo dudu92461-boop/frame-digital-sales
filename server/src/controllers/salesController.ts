@@ -182,7 +182,7 @@ export async function updateSale(req: Request, res: Response) {
 
   await afterSaleChanged(targetSeller, sale.soldAt, existing.soldAt);
   if (targetSeller !== existing.sellerId) {
-    // Transferencia entre vendedores muda a faixa de comissao dos dois.
+    // Transferencia entre vendedores recalcula a comissao dos dois.
     await afterSaleChanged(existing.sellerId, existing.soldAt);
   }
 

@@ -72,7 +72,7 @@ server/                      API em Node + Express + TypeScript
   prisma/schema.prisma       Modelo de dados
   prisma/seed.ts             Dados de demonstracao
   src/
-    domain/                  Regras puras (faixas de comissao, enumeracoes)
+    domain/                  Regras puras (percentual de comissao, enumeracoes)
     services/                Regras com banco (motor de comissao, notificacoes)
     controllers/             Um arquivo por recurso
     routes/                  Mapa de rotas e permissoes
@@ -114,22 +114,24 @@ armazenamento de objetos e guardar apenas a URL nessa coluna.
 
 ## Regras de comissao
 
-A faixa e **progressiva, por vendedor e por mes**. A quantidade de vendas ja pagas no
-mes define o percentual aplicado a **todas** as vendas daquele mes:
+A comissao e de **25% sobre o valor de cada venda**, igual para todos os vendedores e
+para qualquer quantidade de vendas no mes.
 
-| Vendas pagas no mes | Comissao |
-| --- | --- |
-| 0 a 2 | 15% |
-| 3 a 5 | 20% |
-| 6 a 9 | 25% |
-| 10 ou mais | 30% |
+Exemplo: 7 vendas de R$ 500,00 somam R$ 3.500,00 e geram R$ 875,00 de comissao.
 
-Exemplo: 7 vendas de R$ 500,00 no mes somam R$ 3.500,00, caem na faixa de 25% e
-geram R$ 875,00 de comissao.
+O administrador pode definir um **percentual individual** para um vendedor especifico
+(campo "Comissao individual" no cadastro), que substitui o padrao. E a excecao, nao a
+regra — deixando o campo vazio, vale os 25%.
 
-Por isso qualquer alteracao em uma venda (criar, mudar status, mudar valor, excluir)
-recalcula o mes inteiro daquele vendedor — nao apenas a venda alterada. O
-administrador pode definir um percentual fixo por vendedor, que substitui a tabela.
+Alterar uma venda (criar, mudar status, mudar valor, excluir) recalcula o mes inteiro
+daquele vendedor. Com percentual fixo isso raramente muda outras vendas, mas garante
+que uma mudanca no percentual individual se propague para todas as vendas em aberto
+do periodo sem rotina separada.
+
+> **Historico:** ate 08/2026 o percentual era progressivo por faixa de vendas no mes
+> (15/20/25/30%). A regra foi unificada em 25% a pedido da direcao. As comissoes ja
+> **pagas** naquele modelo mantiveram o percentual original — dinheiro repassado nao
+> se recalcula. A regra antiga esta no historico do git, caso precise ser retomada.
 
 ### Ciclo de vida da comissao
 
@@ -141,7 +143,8 @@ administrador pode definir um percentual fixo por vendedor, que substitui a tabe
 | `PAGA` | Repasse efetuado — o valor e congelado e nao muda mais |
 | `CANCELADA` | A venda foi cancelada |
 
-Comissoes `PAGA` nunca sao recalculadas, mesmo que o vendedor suba de faixa depois.
+Comissoes `PAGA` nunca sao recalculadas, mesmo que o percentual do vendedor mude
+depois.
 
 ---
 

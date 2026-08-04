@@ -13,6 +13,7 @@
     "db:push": "prisma db push --skip-generate",
     "db:seed": "tsx prisma/seed.ts",
     "db:clean": "tsx prisma/clean.ts",
+    "recalc": "tsx prisma/recalc.ts",
     "db:reset": "prisma db push --force-reset --skip-generate && prisma generate && tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "test": "tsx src/tests/run.ts"

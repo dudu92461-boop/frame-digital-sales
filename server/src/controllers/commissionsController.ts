@@ -7,7 +7,7 @@ import { pageMeta, paginate, query } from '../lib/query';
 import type { ListQuery } from '../schemas';
 import { currentPeriod } from '../lib/dates';
 import { commissionSummary } from '../services/commissionService';
-import { COMMISSION_TIERS, nextTierProgress, tierForSalesCount } from '../domain/commission';
+import { DEFAULT_COMMISSION_RATE, rateForSeller, rateSource } from '../domain/commission';
 import { notify, userIdOfSeller } from '../services/notificationService';
 import { formatBRL } from '../lib/format';
 import { monthRange } from '../lib/dates';
@@ -54,39 +54,46 @@ export async function listCommissions(req: Request, res: Response) {
   res.json({ items, meta: pageMeta(total, q), summary, period });
 }
 
-/** Faixa de comissao atual do vendedor no mes e quanto falta para a proxima. */
-export async function commissionTier(req: Request, res: Response) {
+/** Percentual de comissao vigente para o vendedor no periodo. */
+export async function commissionRate(req: Request, res: Response) {
   const q = query<ListQuery>(req);
   const sellerId = resolveSellerScope(req, q.sellerId) ?? req.auth!.sellerId;
   const period = { month: q.month ?? currentPeriod().month, year: q.year ?? currentPeriod().year };
 
   if (!sellerId) {
-    return res.json({ tiers: COMMISSION_TIERS, current: null, next: null, paidSalesCount: 0 });
+    return res.json({
+      rate: DEFAULT_COMMISSION_RATE,
+      defaultRate: DEFAULT_COMMISSION_RATE,
+      source: 'PADRAO',
+      override: null,
+      paidSalesCount: 0,
+      period,
+    });
   }
 
-  const paidSalesCount = await prisma.sale.count({
-    where: {
-      sellerId,
-      soldAt: monthRange(period),
-      status: { not: 'CANCELADO' },
-      paidAt: { not: null },
-    },
-  });
+  const [paidSalesCount, seller] = await Promise.all([
+    prisma.sale.count({
+      where: {
+        sellerId,
+        soldAt: monthRange(period),
+        status: { not: 'CANCELADO' },
+        paidAt: { not: null },
+      },
+    }),
+    prisma.seller.findUnique({
+      where: { id: sellerId },
+      select: { commissionOverride: true },
+    }),
+  ]);
 
-  const seller = await prisma.seller.findUnique({
-    where: { id: sellerId },
-    select: { commissionOverride: true },
-  });
+  const override = seller?.commissionOverride ?? null;
 
   res.json({
-    tiers: COMMISSION_TIERS.map((t) => ({
-      ...t,
-      max: Number.isFinite(t.max) ? t.max : null,
-    })),
+    rate: rateForSeller(override),
+    defaultRate: DEFAULT_COMMISSION_RATE,
+    source: rateSource(override),
+    override,
     paidSalesCount,
-    current: tierForSalesCount(paidSalesCount),
-    next: nextTierProgress(paidSalesCount),
-    override: seller?.commissionOverride ?? null,
     period,
   });
 }

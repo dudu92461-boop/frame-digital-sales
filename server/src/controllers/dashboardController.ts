@@ -4,7 +4,7 @@ import { resolveSellerScope } from '../middlewares/auth';
 import { query } from '../lib/query';
 import { currentPeriod, lastPeriods, monthRange, periodLabel } from '../lib/dates';
 import { commissionSummary } from '../services/commissionService';
-import { nextTierProgress, tierForSalesCount } from '../domain/commission';
+import { DEFAULT_COMMISSION_RATE, rateForSeller, rateSource } from '../domain/commission';
 import { forbidden } from '../lib/errors';
 
 interface DashQuery {
@@ -134,9 +134,10 @@ export async function sellerDashboard(req: Request, res: Response) {
       conversion,
     },
     commissions,
-    tier: {
-      current: tierForSalesCount(paidSalesCount),
-      next: nextTierProgress(paidSalesCount),
+    commission: {
+      rate: rateForSeller(seller?.commissionOverride),
+      defaultRate: DEFAULT_COMMISSION_RATE,
+      source: rateSource(seller?.commissionOverride),
       override: seller?.commissionOverride ?? null,
     },
     goal: goal

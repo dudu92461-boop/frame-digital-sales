@@ -1,5 +1,5 @@
 import { prisma, type Db } from '../lib/prisma';
-import { commissionAmount, rateForSalesCount } from '../domain/commission';
+import { commissionAmount, rateForSeller } from '../domain/commission';
 import { monthRange, periodOf, type Period } from '../lib/dates';
 import type { CommissionStatus } from '../domain/enums';
 import { notify, userIdOfSeller } from './notificationService';
@@ -8,13 +8,13 @@ import { formatBRL } from '../lib/format';
 /**
  * Recalcula TODAS as comissoes de um vendedor em um mes.
  *
- * A faixa e progressiva: a quantidade de vendas ja pagas no mes define o
- * percentual aplicado a todas as vendas daquele mes. Por isso qualquer alteracao
- * em uma venda (criar, mudar status, mudar valor, excluir) precisa disparar este
- * recalculo -- e nao apenas recalcular a venda alterada.
+ * O percentual e fixo (25%, ou o individual do vendedor), entao em tese so a
+ * venda alterada mudaria. Ainda assim o recalculo e do mes inteiro: e barato,
+ * e garante que uma alteracao no percentual individual do vendedor se propague
+ * para todas as vendas em aberto do periodo sem precisar de rotina separada.
  *
  * Comissoes com status PAGA sao congeladas: o dinheiro ja saiu, entao valor e
- * percentual nao mudam mais mesmo que o vendedor suba de faixa depois.
+ * percentual nao mudam mais.
  */
 export async function recalcSellerMonth(
   sellerId: string,
@@ -33,10 +33,7 @@ export async function recalcSellerMonth(
     orderBy: { soldAt: 'asc' },
   });
 
-  // "Venda paga" = dinheiro recebido pela Frame Digital. paidAt e a fonte da
-  // verdade (setado quando o status vira PAGO ou CONCLUIDO).
-  const paidCount = sales.filter((s) => s.status !== 'CANCELADO' && s.paidAt !== null).length;
-  const rate = rateForSalesCount(paidCount, seller.commissionOverride);
+  const rate = rateForSeller(seller.commissionOverride);
 
   for (const sale of sales) {
     const existing = sale.commission;

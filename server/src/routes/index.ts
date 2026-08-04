@@ -119,7 +119,7 @@ router.post('/sales/:id/unapprove', requireAdmin, h(sales.unapproveSale));
 
 // Comissoes
 router.get('/commissions', validate(commissionListQuery, 'query'), h(commissions.listCommissions));
-router.get('/commissions/tier', validate(periodQuery, 'query'), h(commissions.commissionTier));
+router.get('/commissions/rate', validate(periodQuery, 'query'), h(commissions.commissionRate));
 router.get('/commissions/payments', validate(listQuery, 'query'), h(commissions.listPayments));
 router.post(
   '/commissions/release',

@@ -9,12 +9,11 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import {
-  COMMISSION_TIERS,
+  DEFAULT_COMMISSION_RATE,
   commissionAmount,
-  nextTierProgress,
-  rateForSalesCount,
+  rateForSeller,
+  rateSource,
   round2,
-  tierForSalesCount,
 } from '../domain/commission';
 import { lastPeriods, monthRange, periodOf, shiftPeriod } from '../lib/dates';
 import { recalcSellerMonth } from '../services/commissionService';
@@ -42,35 +41,35 @@ function eq(name: string, actual: unknown, expected: unknown) {
 // Funcoes puras
 // ---------------------------------------------------------------------------
 
-function testTiers() {
-  console.log('\nFaixas de comissao');
+function testRates() {
+  console.log('\nPercentual de comissao');
 
-  eq('0 vendas -> 15%', rateForSalesCount(0), 0.15);
-  eq('2 vendas -> 15%', rateForSalesCount(2), 0.15);
-  eq('3 vendas -> 20%', rateForSalesCount(3), 0.2);
-  eq('5 vendas -> 20%', rateForSalesCount(5), 0.2);
-  eq('6 vendas -> 25%', rateForSalesCount(6), 0.25);
-  eq('9 vendas -> 25%', rateForSalesCount(9), 0.25);
-  eq('10 vendas -> 30%', rateForSalesCount(10), 0.3);
-  eq('40 vendas -> 30%', rateForSalesCount(40), 0.3);
-  eq('negativo trata como 0', rateForSalesCount(-3), 0.15);
+  eq('o padrao e 25%', DEFAULT_COMMISSION_RATE, 0.25);
+  eq('sem percentual individual usa o padrao', rateForSeller(null), 0.25);
+  eq('undefined usa o padrao', rateForSeller(undefined), 0.25);
 
-  eq('override do admin prevalece', rateForSalesCount(1, 0.4), 0.4);
-  eq('override invalido e ignorado', rateForSalesCount(1, 0), 0.15);
-  eq('override nulo e ignorado', rateForSalesCount(7, null), 0.25);
+  // A quantidade de vendas no mes nao influencia mais o percentual.
+  check(
+    'o percentual nao depende da quantidade de vendas',
+    [0, 1, 3, 7, 10, 40].every(() => rateForSeller(null) === 0.25),
+  );
 
-  eq('faixa de 7 vendas', tierForSalesCount(7).rate, 0.25);
-  eq('proxima faixa de 7 vendas exige 3', nextTierProgress(7)?.salesRemaining, 3);
-  eq('sem proxima faixa em 10+', nextTierProgress(12), null);
+  eq('percentual individual prevalece', rateForSeller(0.4), 0.4);
+  eq('individual de 30% prevalece', rateForSeller(0.3), 0.3);
+  eq('zero e ignorado (nao zera a comissao)', rateForSeller(0), 0.25);
+  eq('negativo e ignorado', rateForSeller(-0.5), 0.25);
+  eq('acima de 100% e ignorado', rateForSeller(1.5), 0.25);
+  eq('exatamente 100% e aceito', rateForSeller(1), 1);
 
-  check('as faixas cobrem 0..50 sem lacuna', Array.from({ length: 51 }, (_, i) => i).every((n) =>
-    COMMISSION_TIERS.some((t) => n >= t.min && n <= t.max),
-  ));
+  eq('origem padrao', rateSource(null), 'PADRAO');
+  eq('origem individual', rateSource(0.4), 'INDIVIDUAL');
+  eq('origem de override invalido e padrao', rateSource(0), 'PADRAO');
 
   console.log('\nCalculo do valor');
   eq('exemplo da especificacao: 7 x R$500 a 25%', commissionAmount(3500, 0.25), 875);
   eq('uma venda de R$500 a 25%', commissionAmount(500, 0.25), 125);
-  eq('arredonda 2 casas', commissionAmount(333.33, 0.15), 50);
+  eq('venda de R$1.000 a 25%', commissionAmount(1000, 0.25), 250);
+  eq('arredonda 2 casas', commissionAmount(333.33, 0.25), 83.33);
   eq('round2 corrige ponto flutuante', round2(0.1 + 0.2), 0.3);
 }
 
@@ -140,7 +139,7 @@ async function testCommissionEngine() {
     });
 
   try {
-    // 2 vendas pagas -> faixa de 15%
+    // Duas vendas pagas: 25% desde a primeira.
     await makeSale(1, 'PAGO');
     await makeSale(2, 'PAGO');
     await recalcSellerMonth(sellerId, period, prisma);
@@ -149,11 +148,11 @@ async function testCommissionEngine() {
       where: { sellerId, referenceMonth: period.month, referenceYear: period.year },
     });
     eq('2 vendas geram 2 comissoes', commissions.length, 2);
-    eq('faixa aplicada e 15%', commissions[0].rate, 0.15);
-    eq('valor por venda R$75', commissions[0].amount, 75);
+    eq('percentual aplicado e 25%', commissions[0].rate, 0.25);
+    eq('valor por venda R$125', commissions[0].amount, 125);
     eq('status inicial PENDENTE (venda paga)', commissions[0].status, 'PENDENTE');
 
-    // Sobe para 7 vendas pagas -> TODAS as comissoes do mes viram 25%
+    // Chega a 7 vendas: o percentual continua 25%, sem degrau.
     for (let day = 3; day <= 7; day++) await makeSale(day, 'PAGO');
     await recalcSellerMonth(sellerId, period, prisma);
 
@@ -162,7 +161,7 @@ async function testCommissionEngine() {
     });
     eq('7 vendas geram 7 comissoes', commissions.length, 7);
     check(
-      'todas as comissoes do mes foram reajustadas para 25%',
+      'o percentual segue 25% com 7 vendas',
       commissions.every((c) => c.rate === 0.25),
       commissions.map((c) => c.rate).join(','),
     );
@@ -172,19 +171,17 @@ async function testCommissionEngine() {
       875,
     );
 
-    // Venda nao paga entra como PREVISTA e nao conta para a faixa
+    // Venda nao paga entra como PREVISTA, ja com o percentual cheio.
     const pending = await makeSale(8, 'PENDENTE');
     await recalcSellerMonth(sellerId, period, prisma);
     const previstaCommission = await prisma.commission.findUnique({
       where: { saleId: pending.id },
     });
     eq('venda pendente gera comissao PREVISTA', previstaCommission?.status, 'PREVISTA');
-    check(
-      'venda pendente nao muda a faixa',
-      (await prisma.commission.findFirst({ where: { sellerId } }))?.rate === 0.25,
-    );
+    eq('comissao prevista ja usa 25%', previstaCommission?.rate, 0.25);
 
-    // Comissao PAGA e congelada: nao muda mesmo com nova venda
+    // Comissao PAGA e congelada, mesmo com percentual historico diferente.
+    // Simula uma comissao paga na regra antiga (15%): ela nao pode ser mexida.
     const frozen = commissions[0];
     await prisma.commission.update({
       where: { id: frozen.id },
@@ -192,23 +189,40 @@ async function testCommissionEngine() {
     });
     await makeSale(9, 'PAGO');
     await makeSale(10, 'PAGO');
-    await makeSale(11, 'PAGO'); // chega a 10 pagas -> faixa de 30%
+    await makeSale(11, 'PAGO');
     await recalcSellerMonth(sellerId, period, prisma);
 
     const afterFreeze = await prisma.commission.findUnique({ where: { id: frozen.id } });
     eq('comissao PAGA mantem o valor', afterFreeze?.amount, 75);
-    eq('comissao PAGA mantem o percentual', afterFreeze?.rate, 0.15);
+    eq('comissao PAGA mantem o percentual historico', afterFreeze?.rate, 0.15);
 
     const others = await prisma.commission.findMany({
       where: { sellerId, status: { in: ['PENDENTE', 'LIBERADA'] } },
     });
     check(
-      'demais comissoes sobem para 30%',
-      others.length > 0 && others.every((c) => c.rate === 0.3),
+      'demais comissoes seguem em 25% com 10 vendas',
+      others.length > 0 && others.every((c) => c.rate === 0.25),
       others.map((c) => c.rate).join(','),
     );
 
-    // Cancelamento zera a comissao e derruba a faixa
+    // Percentual individual do vendedor sobrepoe o padrao e se propaga.
+    await prisma.seller.update({ where: { id: sellerId }, data: { commissionOverride: 0.3 } });
+    await recalcSellerMonth(sellerId, period, prisma);
+    const overridden = await prisma.commission.findMany({
+      where: { sellerId, status: { in: ['PENDENTE', 'LIBERADA', 'PREVISTA'] } },
+    });
+    check(
+      'percentual individual de 30% se propaga ao mes',
+      overridden.length > 0 && overridden.every((c) => c.rate === 0.3),
+      overridden.map((c) => c.rate).join(','),
+    );
+    const stillFrozen = await prisma.commission.findUnique({ where: { id: frozen.id } });
+    eq('individual nao mexe na comissao ja paga', stillFrozen?.rate, 0.15);
+
+    await prisma.seller.update({ where: { id: sellerId }, data: { commissionOverride: null } });
+    await recalcSellerMonth(sellerId, period, prisma);
+
+    // Cancelamento zera a comissao
     const sales = await prisma.sale.findMany({
       where: { sellerId, status: 'PAGO' },
       orderBy: { soldAt: 'desc' },
@@ -236,7 +250,7 @@ async function testCommissionEngine() {
 async function main() {
   console.log('FRAME DIGITAL SALES - testes de regras de negocio');
 
-  testTiers();
+  testRates();
   testDates();
   await testCommissionEngine();
 

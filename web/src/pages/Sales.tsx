@@ -27,13 +27,13 @@ import type { Paginated, Sale, SaleStatus } from '@/types';
 
 type SalesResponse = Paginated<Sale> & { totals: { amount: number; count: number } };
 
-interface TierInfo {
-  /** Tabela oficial de faixas, vinda do backend (fonte unica da regra). */
-  tiers: { min: number; max: number | null; rate: number; label: string }[];
-  paidSalesCount: number;
-  current: { rate: number; label: string };
-  next: { tier: { rate: number; label: string }; salesRemaining: number } | null;
+/** Percentual vigente do vendedor, vindo do backend (fonte unica da regra). */
+interface RateInfo {
+  rate: number;
+  defaultRate: number;
+  source: 'PADRAO' | 'INDIVIDUAL';
   override: number | null;
+  paidSalesCount: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -57,9 +57,9 @@ function SaleForm({
   const [sellerId, setSellerId] = useState(sale?.sellerId ?? (isAdmin ? '' : user?.seller?.id ?? ''));
   const clients = useClientOptions(sellerId || undefined);
 
-  // A faixa e sempre a do vendedor da venda -- nao a de quem esta preenchendo o
-  // formulario. Sem isso, o admin veria a propria faixa ao lancar por outro.
-  const { data: tier } = useApi<TierInfo>(sellerId ? '/commissions/tier' : null, {
+  // O percentual e sempre o do vendedor da venda -- nao o de quem esta
+  // preenchendo. Sem isso, o admin veria o proprio ao lancar por outro.
+  const { data: rateInfo } = useApi<RateInfo>(sellerId ? '/commissions/rate' : null, {
     sellerId: isAdmin ? sellerId : undefined,
   });
 
@@ -100,24 +100,18 @@ function SaleForm({
   }, [sellerId, clients]);
 
   /**
-   * Previsao da comissao desta venda. Se a venda entrar como paga e fizer o
-   * vendedor cruzar de faixa, mostramos ja o percentual novo.
+   * Previsao da comissao desta venda. Com percentual fixo, basta aplicar o do
+   * vendedor sobre o valor -- a quantidade de vendas do mes nao interfere.
    */
   const preview = useMemo(() => {
     const amount = Number(form.amount) || 0;
-    if (!tier || amount <= 0) return null;
+    if (!rateInfo || amount <= 0) return null;
 
     const willBePaid = form.status === 'PAGO' || form.status === 'CONCLUIDO';
-    const alreadyPaid = sale?.paidAt != null;
-    const projectedCount = tier.paidSalesCount + (willBePaid && !alreadyPaid ? 1 : 0);
-
-    const matched = tier.tiers.find(
-      (t) => projectedCount >= t.min && (t.max === null || projectedCount <= t.max),
-    );
-    const rate = tier.override ?? matched?.rate ?? tier.current.rate;
+    const rate = rateInfo.rate;
 
     return { rate, amount: Math.round(amount * rate * 100) / 100, willBePaid };
-  }, [form.amount, form.status, tier, sale]);
+  }, [form.amount, form.status, rateInfo]);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -163,7 +157,7 @@ function SaleForm({
       open
       onClose={onClose}
       title={isEdit ? `Editar venda #${sale!.number}` : 'Registrar venda'}
-      description="A comissao e calculada automaticamente a partir da faixa do mes."
+      description="A comissao e calculada automaticamente sobre o valor da venda."
       footer={
         <>
           <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
@@ -302,7 +296,7 @@ function SaleForm({
               </p>
             </div>
             <div className="text-right">
-              <p className="text-2xs text-slate-500">Faixa aplicada</p>
+              <p className="text-2xs text-slate-500">Percentual aplicado</p>
               <p className="text-sm font-medium text-slate-900">{percent(preview.rate, 0)}</p>
               <p className="text-2xs text-slate-500 mt-0.5">
                 {preview.willBePaid
@@ -356,7 +350,7 @@ export function Sales() {
     pageSize: 25,
   });
 
-  const { data: tier, reload: reloadTier } = useApi<TierInfo>('/commissions/tier', {
+  const { data: rateInfo, reload: reloadRate } = useApi<RateInfo>('/commissions/rate', {
     sellerId: isAdmin && sellerId !== 'all' ? sellerId : undefined,
     month,
     year,
@@ -366,8 +360,8 @@ export function Sales() {
   const [deleting, setDeleting] = useState<Sale | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // A faixa so e exibida quando a tela representa um unico vendedor.
-  const showTier = !isAdmin || sellerId !== 'all';
+  // O percentual so e exibido quando a tela representa um unico vendedor.
+  const showRate = !isAdmin || sellerId !== 'all';
   const pendingApproval = (data?.items ?? []).filter(
     (s) => !s.approved && s.status !== 'CANCELADO',
   ).length;
@@ -379,7 +373,7 @@ export function Sales() {
 
   const refreshAll = () => {
     reload();
-    reloadTier();
+    reloadRate();
   };
 
   const changeStatus = async (sale: Sale, next: SaleStatus) => {
@@ -435,9 +429,9 @@ export function Sales() {
       />
 
       {/*
-        A faixa de comissao e sempre de UM vendedor. Quando o admin olha a
-        operacao inteira nao existe "faixa atual", entao trocamos esses cartoes
-        por indicadores que fazem sentido na visao consolidada.
+        O percentual de comissao e sempre de UM vendedor (o padrao vale para
+        todos, mas o admin pode definir um individual). Na visao consolidada
+        trocamos esses cartoes por indicadores da operacao inteira.
       */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         <Stat
@@ -447,28 +441,30 @@ export function Sales() {
           tone="brand"
         />
 
-        {showTier ? (
+        {showRate ? (
           <>
             <Stat
               label="Vendas pagas no mes"
-              value={String(tier?.paidSalesCount ?? 0)}
-              hint="Base para a faixa de comissao"
+              value={String(rateInfo?.paidSalesCount ?? 0)}
+              hint="Vendas com pagamento confirmado"
               tone="money"
             />
             <Stat
-              label="Faixa atual"
-              value={tier ? percent(tier.current.rate, 0) : '-'}
-              hint={tier?.current.label}
+              label="Comissao"
+              value={rateInfo ? percent(rateInfo.rate, 0) : '-'}
+              hint={
+                rateInfo?.source === 'INDIVIDUAL'
+                  ? 'Percentual individual do vendedor'
+                  : 'Percentual padrao da equipe'
+              }
               tone="goal"
             />
             <Stat
-              label="Proxima faixa"
-              value={tier?.next ? percent(tier.next.tier.rate, 0) : 'Maxima'}
-              hint={
-                tier?.next
-                  ? `Faltam ${tier.next.salesRemaining} venda(s) paga(s)`
-                  : 'Faixa maxima atingida'
-              }
+              label="Comissao gerada"
+              value={money(
+                (data?.items ?? []).reduce((sum, s) => sum + (s.commission?.amount ?? 0), 0),
+              )}
+              hint="Somatorio das vendas listadas"
               tone="neutral"
             />
           </>

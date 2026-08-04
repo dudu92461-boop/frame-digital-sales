@@ -257,7 +257,7 @@ export const createSellerSchema = z.object({
     .max(1)
     .optional()
     .nullable()
-    .describe('Percentual fixo (0.25 = 25%). Vazio usa a tabela progressiva.'),
+    .describe('Percentual individual (0.3 = 30%). Vazio usa o padrao de 25%.'),
 });
 
 export const updateSellerSchema = z.object({

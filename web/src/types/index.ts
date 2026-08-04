@@ -276,9 +276,10 @@ export interface SellerDashboard {
     conversion: number;
   };
   commissions: CommissionSummary;
-  tier: {
-    current: { rate: number; label: string };
-    next: { tier: { rate: number; label: string }; salesRemaining: number } | null;
+  commission: {
+    rate: number;
+    defaultRate: number;
+    source: 'PADRAO' | 'INDIVIDUAL';
     override: number | null;
   };
   goal: {
