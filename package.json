@@ -17,7 +17,10 @@
     "build": "npm --prefix server run build && npm --prefix web run build",
     "start": "npm --prefix server run start",
     "typecheck": "npm --prefix server run typecheck && npm --prefix web run typecheck",
-    "test": "npm --prefix server run test"
+    "test": "npm --prefix server run test",
+
+    "render-build": "npm --prefix server install --include=dev && npm --prefix web install --include=dev && npm --prefix server run build && npm --prefix web run build",
+    "render-start": "npm --prefix server run start:prod"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

@@ -22,6 +22,16 @@ export const env = {
   webOrigin: process.env.WEB_ORIGIN ?? 'http://localhost:5173',
   tokenName: 'fds_token',
   tokenTtlSeconds: 60 * 60 * 12, // 12 horas
+
+  // Em producao o servidor serve o site ja compilado (web/dist), entao API e
+  // frontend ficam na mesma origem -- e por isso o cookie de sessao funciona
+  // sem configuracao extra de dominio.
+  serveWeb: process.env.SERVE_WEB === 'true' || process.env.NODE_ENV === 'production',
+
+  // Credenciais do admin criado no primeiro deploy (ver lib/bootstrap.ts).
+  adminEmail: process.env.ADMIN_EMAIL,
+  adminPassword: process.env.ADMIN_PASSWORD,
+  adminName: process.env.ADMIN_NAME,
 };
 
 if (env.isProduction && env.jwtSecret.includes('dev-secret')) {

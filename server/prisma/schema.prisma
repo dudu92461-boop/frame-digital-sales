@@ -1,23 +1,19 @@
 // FRAME DIGITAL SALES - modelo de dados
 //
-// Provider: sqlite em desenvolvimento. Para migrar para PostgreSQL em producao,
-// troque o bloco `datasource` por:
+// Provider: PostgreSQL (producao no Neon e desenvolvimento apontando para o
+// mesmo tipo de banco). A sincronizacao do schema e feita com `prisma db push`
+// -- nao ha migracoes versionadas, o que mantem o deploy simples.
 //
-//   datasource db {
-//     provider = "postgresql"
-//     url      = env("DATABASE_URL")
-//   }
-//
-// e rode `npx prisma migrate dev`. O schema nao usa nenhum recurso exclusivo de
-// SQLite. Campos de enumeracao sao String validadas na camada de aplicacao
-// (src/domain/enums.ts) porque enums nativos nao existem no SQLite.
+// Campos de enumeracao sao String validadas na camada de aplicacao
+// (src/domain/enums.ts). Nenhum recurso exclusivo de um banco e usado, entao o
+// modelo continua portavel.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

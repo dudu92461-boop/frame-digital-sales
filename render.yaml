@@ -1,0 +1,34 @@
+# Configuracao do deploy no Render (https://render.com).
+#
+# Ao criar um "Blueprint" apontando para este repositorio, o Render le este
+# arquivo e monta o servico automaticamente. Voce so precisa preencher duas
+# variaveis: DATABASE_URL (vem do Neon) e ADMIN_PASSWORD (a senha inicial do
+# administrador). O JWT_SECRET e gerado sozinho.
+#
+# Passo a passo completo em DEPLOY.md.
+
+services:
+  - type: web
+    name: frame-digital-sales
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm run render-build
+    startCommand: npm run render-start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Chave de assinatura da sessao: gerada e guardada pelo proprio Render.
+      - key: JWT_SECRET
+        generateValue: true
+      # Cole aqui a "connection string" do banco Neon (Painel do Render).
+      - key: DATABASE_URL
+        sync: false
+      # Senha do primeiro administrador. Troque no sistema apos o primeiro acesso.
+      - key: ADMIN_EMAIL
+        value: admin@framedigital.com.br
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_NAME
+        value: Administrador Frame Digital
