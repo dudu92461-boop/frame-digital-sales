@@ -9,7 +9,7 @@ import { env } from './config/env';
 import { router } from './routes';
 import { errorHandler, notFoundHandler } from './middlewares/error';
 import { prisma } from './lib/prisma';
-import { ensureAdmin } from './lib/bootstrap';
+import { bootstrap } from './lib/bootstrap';
 
 const app = express();
 
@@ -72,8 +72,8 @@ app.use(errorHandler);
 let server: Server | undefined;
 
 async function start() {
-  // Garante um admin em banco recem-criado (primeiro deploy). Idempotente.
-  await ensureAdmin().catch((err) => console.error('[bootstrap] falhou:', err));
+  // Prepara um banco recem-criado (admin + catalogo). Idempotente.
+  await bootstrap().catch((err) => console.error('[bootstrap] falhou:', err));
 
   server = app.listen(env.port, () => {
     console.log(`\n  FRAME DIGITAL SALES`);
